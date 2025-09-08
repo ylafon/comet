@@ -6,29 +6,30 @@ from bleak import BleakClient, BleakGATTCharacteristic
 class Comet:
     __version__ = "0.0.1"
     #     status = "CMDS:01\r"
-    __debug = True
+    __debug = False
 
     # commands
-    q_status = "CMDS:01"
-    q_version = "CMDS:02"
+    Q_STATUS: str = "CMDS:01"
+    Q_VERSION: str = "CMDS:02"
 
     # buttons
-    q_mute_toggle = "BTNS:08"
-    q_input_switch = "BTNS:10"
-    q_output_switch = "BTNS:20"
-    q_volume_inc = "BTNS:30"
-    q_volume_dec = "BTNS:31"
-    q_power_off = "BTNS:40"
-    q_power_on = "BTNS:41"
-    q_power_toggle = "BTNS:42"
+    Q_MUTE_TOGGLE: str = "BTNS:08"
+    Q_INPUT_SWITCH: str = "BTNS:10"
+    Q_OUTPUT_SWITCH: str = "BTNS:20"
+    Q_VOLUME_INC: str = "BTNS:30"
+    Q_VOLUME_DEC: str = "BTNS:31"
+    Q_POWER_OFF: str = "BTNS:40"
+    Q_POWER_ON: str = "BTNS:41"
+    Q_POWER_TOGGLE: str = "BTNS:42"
 
     # display TOTO localise this
-    samplings = ["NOCLK", "NOPLL", "192K", "176.4K", "96K", "88.2K", "48K",
-                 "44.1K", "384K", "352.8K", "DSD", "NOCLK_REAL"]
-    inputs = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "UNKNOWN"]
-    outputs = ["MAIN", "HEAD", "UNKNOWN"]
-    mutes = ["Unmuted", "Muted", "Reduced"]
-    powers = ["Unknown", "On", "Off"]
+    SAMPLINGS: list[str] = ["NOCLK", "NOPLL", "192K", "176.4K", "96K", "88.2K",
+                            "48K", "44.1K", "384K", "352.8K", "DSD",
+                            "NOCLK_REAL"]
+    INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "UNKNOWN"]
+    OUTPUTS: list[str] = ["MAIN", "HEAD", "UNKNOWN"]
+    MUTES: list[str] = ["Unmuted", "Muted", "Reduced"]
+    POWERS: list[str] = ["Unknown", "On", "Off"]
 
     comet_addr: UUID | str = None
     characteristic: BleakGATTCharacteristic = None
@@ -92,7 +93,7 @@ class Comet:
         self.client = BleakClient(self.comet_addr)
         await self.client.connect()
         self.characteristic = \
-        list(self.client.services.characteristics.values())[0]
+            list(self.client.services.characteristics.values())[0]
         await self.client.start_notify(self.characteristic,
                                        self.__process_callback)
         return self.client
@@ -103,16 +104,16 @@ class Comet:
             await self.client.disconnect()
 
     async def get_status(self) -> None:
-        await self.__send_command(self.q_status)
+        await self.__send_command(self.Q_STATUS)
 
     async def get_firmware_version(self) -> None:
-        await self.__send_command(self.q_version)
+        await self.__send_command(self.Q_VERSION)
 
     async def increase_volume(self) -> None:
-        await self.__send_command(self.q_volume_inc)
+        await self.__send_command(self.Q_VOLUME_INC)
 
     async def decrease_volume(self) -> None:
-        await self.__send_command(self.q_volume_dec)
+        await self.__send_command(self.Q_VOLUME_DEC)
 
     async def set_volume(self, volume: float) -> None:
         max_loop: int = 10
@@ -129,9 +130,9 @@ class Comet:
         if self.power_status != 0:
             while self.volume != target_volume:
                 if self.volume < target_volume:
-                    await self.__send_command(self.q_volume_inc)
+                    await self.__send_command(self.Q_VOLUME_INC)
                 else:
-                    await self.__send_command(self.q_volume_dec)
+                    await self.__send_command(self.Q_VOLUME_DEC)
                 loop_idx = 0
                 while self.power_status == 0 and loop_idx < max_loop:
                     await asyncio.sleep(0.05)
@@ -139,27 +140,27 @@ class Comet:
                     print(f"Current Volume [{self.volume / 2:g}]")
 
     async def toggle_mute(self) -> None:
-        await self.__send_command(self.q_mute_toggle)
+        await self.__send_command(self.Q_MUTE_TOGGLE)
 
     async def toggle_input(self) -> None:
-        await self.__send_command(self.q_input_switch)
+        await self.__send_command(self.Q_INPUT_SWITCH)
 
     async def toggle_output(self) -> None:
-        await self.__send_command(self.q_output_switch)
+        await self.__send_command(self.Q_OUTPUT_SWITCH)
 
     async def toggle_power(self, mute: bool) -> None:
-        await self.__send_command(self.q_power_toggle)
+        await self.__send_command(self.Q_POWER_TOGGLE)
 
     async def power_on(self) -> None:
-        await self.__send_command(self.q_power_on)
+        await self.__send_command(self.Q_POWER_ON)
 
     async def power_off(self) -> None:
-        await self.__send_command(self.q_power_off)
+        await self.__send_command(self.Q_POWER_OFF)
 
     async def set_input(self, wanted_input: str) -> None:
         max_loop: int = 10
-        if wanted_input in self.inputs:
-            target_input = self.inputs.index(wanted_input)
+        if wanted_input in self.INPUTS:
+            target_input = self.INPUTS.index(wanted_input)
             # don't aim for UNKNOWN :)
             if target_input == 5:
                 return
@@ -171,14 +172,13 @@ class Comet:
                     await self.get_status()
 
             while self.current_input != target_input:
-                await self.__send_command(self.q_input_switch)
+                await self.toggle_input()
                 loop_idx = 0
                 while self.power_status == 0 and loop_idx < max_loop:
                     await asyncio.sleep(0.05)
 
-
     def display_status(self) -> str:
         if self.power_status == 0:
-            return self.powers[0]
+            return self.POWERS[0]
 
-        return f"Power is {self.powers[self.power_status]}, {self.mutes[self.muted_status]}, Volume is {self.volume / 2:g}% -{(200 - self.volume) / 4:g}dB , input {self.inputs[self.current_input]}, output {self.outputs[self.current_output]}, sampling {self.samplings[self.sampling_status]}"
+        return f"Power is {self.POWERS[self.power_status]}, {self.MUTES[self.muted_status]}, Volume is {self.volume / 2:g}% -{(200 - self.volume) / 4:g}dB , input {self.INPUTS[self.current_input]}, output {self.OUTPUTS[self.current_output]}, sampling {self.SAMPLINGS[self.sampling_status]}"
