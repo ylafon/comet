@@ -152,7 +152,7 @@ class Comet:
     async def toggle_output(self) -> None:
         await self.__send_command(self.Q_OUTPUT_SWITCH)
 
-    async def toggle_power(self, mute: bool) -> None:
+    async def toggle_power(self) -> None:
         await self.__send_command(self.Q_POWER_TOGGLE)
 
     async def power_on(self) -> None:
@@ -161,31 +161,64 @@ class Comet:
     async def power_off(self) -> None:
         await self.__send_command(self.Q_POWER_OFF)
 
-    async def set_input(self, wanted_input: str) -> None:
+    async def set_input(self, wanted_input: str) -> bool:
         max_loop: int = 10
-        if wanted_input in self.INPUTS:
-            target_input = self.INPUTS.index(wanted_input)
-            # don't aim for UNKNOWN :)
-            if target_input == 8:
-                return
+        wanted_input = wanted_input.upper()
+        if wanted_input not in self.INPUTS:
+            return False
 
-            if self.power_status != 0:
-                loop_idx = 0
-                while self.power_status == 0 and max_loop < max_loop:
-                    loop_idx += 1
-                    await self.get_status()
+        target_input = self.INPUTS.index(wanted_input)
+        # don't aim for UNKNOWN :)
+        if target_input == 8:
+            return False
 
-            orig_input = self.current_input
-            while self.current_input != target_input:
-                await self.toggle_input()
-                loop_idx = 0
-                while self.power_status == 0 and loop_idx < max_loop:
-                    loop_idx += 1
-                    await asyncio.sleep(0.05)
-                if self.current_input == orig_input:
-                    # we looped, the selected input was not available.
-                    # and we keep the previously selected one
-                    break
+        if self.power_status != 0:
+            loop_idx = 0
+            while self.power_status == 0 and max_loop < max_loop:
+                loop_idx += 1
+                await self.get_status()
+
+        orig_input = self.current_input
+        while self.current_input != target_input:
+            await self.toggle_input()
+            loop_idx = 0
+            while self.power_status == 0 and loop_idx < max_loop:
+                loop_idx += 1
+                await asyncio.sleep(0.05)
+            if self.current_input == orig_input:
+                # we looped, the selected input was not available.
+                # and we keep the previously selected one
+                return False
+        return True
+
+    async def set_output(self, wanted_output: str) -> bool:
+        max_loop: int = 10
+        wanted_output = wanted_output.upper()
+        if wanted_output not in self.OUTPUTS:
+            return False
+        target_output = self.OUTPUTS.index(wanted_output)
+        # don't aim for UNKNOWN :)
+        if target_output == 3:
+            return False
+
+        if self.power_status != 0:
+            loop_idx = 0
+            while self.power_status == 0 and max_loop < max_loop:
+                loop_idx += 1
+                await self.get_status()
+
+        orig_output = self.current_output
+        while self.current_output != target_output:
+            await self.toggle_output()
+            loop_idx = 0
+            while self.power_status == 0 and loop_idx < max_loop:
+                loop_idx += 1
+                await asyncio.sleep(0.05)
+            if self.current_output == orig_output:
+            # we looped, the selected input was not available.
+            # and we keep the previously selected one
+                return False
+        return True
 
 
     def display_status(self) -> str:
