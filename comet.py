@@ -23,11 +23,12 @@ class Comet:
     Q_POWER_TOGGLE: str = "BTNS:42"
 
     # display TOTO localise this
-    SAMPLINGS: list[str] = ["NOCLK", "NOPLL", "192K", "176.4K", "96K", "88.2K",
-                            "48K", "44.1K", "384K", "352.8K", "DSD",
-                            "NOCLK_REAL"]
-    INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "UNKNOWN"]
-    OUTPUTS: list[str] = ["MAIN", "HEAD", "UNKNOWN"]
+    SAMPLINGS: list[str] = ["NOCLK_DETECT", "NOPLL", "192K", "176.4K", "96K",
+                            "88.2K", "48K", "44.1K", "384K", "352.8K", "DSD",
+                            "NOCLK"]
+    INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "EXONET",
+                         "AIR", "TUNER", "UNKNOWN"]
+    OUTPUTS: list[str] = ["MAIN", "HEAD", "EXONET", "UNKNOWN"]
     MUTES: list[str] = ["Unmuted", "Muted", "Reduced"]
     POWERS: list[str] = ["Unknown", "On", "Off"]
 
@@ -48,8 +49,8 @@ class Comet:
     def __init__(self, comet_addr: UUID | str):
         self.comet_addr = comet_addr
 
-    async def __process_callback(self, sender: BleakGATTCharacteristic,
-                                 raw_buffer: bytearray) -> None:
+    def __process_callback(self, sender: BleakGATTCharacteristic,
+                           raw_buffer: bytearray) -> None:
         buf = str(raw_buffer, 'utf-8')
         if self.__debug:
             print(f"Processing Buffer")
@@ -64,6 +65,9 @@ class Comet:
                 self.sampling_status = int(buf[10])
                 self.current_input = int(buf[11])
                 self.current_output = int(buf[14])
+                if self.__debug:
+                    print(
+                        f"UNKNOWN -> [{bytes(buf[12], "utf-8")[0]:02x}][{bytes(buf[13], "utf-8")[0]:02x}]")
             elif buf.startswith("RP02:"):
                 self.firmware_version = buf[5:11]
                 self.fpga_version = buf[11:17]
@@ -162,7 +166,7 @@ class Comet:
         if wanted_input in self.INPUTS:
             target_input = self.INPUTS.index(wanted_input)
             # don't aim for UNKNOWN :)
-            if target_input == 5:
+            if target_input == 8:
                 return
 
             if self.power_status != 0:
@@ -171,11 +175,18 @@ class Comet:
                     loop_idx += 1
                     await self.get_status()
 
+            orig_input = self.current_input
             while self.current_input != target_input:
                 await self.toggle_input()
                 loop_idx = 0
                 while self.power_status == 0 and loop_idx < max_loop:
+                    loop_idx += 1
                     await asyncio.sleep(0.05)
+                if self.current_input == orig_input:
+                    # we looped, the selected input was not available.
+                    # and we keep the previously selected one
+                    break
+
 
     def display_status(self) -> str:
         if self.power_status == 0:
