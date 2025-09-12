@@ -23,14 +23,13 @@ class Comet:
     Q_POWER_TOGGLE: str = "BTNS:42"
 
     # display TOTO localise this
-    SAMPLINGS: list[str] = ["NOCLK_DETECT", "NOPLL", "192K", "176.4K", "96K",
-                            "88.2K", "48K", "44.1K", "384K", "352.8K", "DSD",
-                            "NOCLK"]
+    SAMPLINGS: list[str] = ["NOCLK", "NOPLL", "192K", "176.4K", "96K",
+                            "88.2K", "48K", "44.1K", "384K", "352.8K", "DSD"]
     INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "EXONET",
                          "AIR", "TUNER", "UNKNOWN"]
     OUTPUTS: list[str] = ["MAIN", "HEAD", "EXONET", "UNKNOWN"]
-    MUTES: list[str] = ["Unmuted", "Muted", "Reduced"]
-    POWERS: list[str] = ["Unknown", "On", "Off"]
+    MUTES: list[str] = ["UNMUTED", "MUTED", "REDUCED"]
+    POWERS: list[str] = ["UNKNOWN", "ON", "OFF"]
 
     comet_addr: UUID | str = None
     characteristic: BleakGATTCharacteristic = None
@@ -63,6 +62,8 @@ class Comet:
                 self.power_status = 1 if buf[8] == "1" else 2
                 self.muted_status = int(buf[9])
                 self.sampling_status = int(buf[10])
+                if (self.sampling_status >= len(self.SAMPLINGS)):
+                    self.sampling_status = 0
                 self.current_input = int(buf[11])
                 self.current_output = int(buf[14])
                 if self.__debug:
@@ -215,11 +216,10 @@ class Comet:
                 loop_idx += 1
                 await asyncio.sleep(0.05)
             if self.current_output == orig_output:
-            # we looped, the selected input was not available.
-            # and we keep the previously selected one
+                # we looped, the selected input was not available.
+                # and we keep the previously selected one
                 return False
         return True
-
 
     def display_status(self) -> str:
         if self.power_status == 0:
