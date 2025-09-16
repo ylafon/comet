@@ -67,8 +67,11 @@ class Comet:
                 self.current_input = int(buf[11])
                 self.current_output = int(buf[14])
                 if self.__debug:
-                    print(
-                        f"UNKNOWN -> [{bytes(buf[12], "utf-8")[0]:02x}][{bytes(buf[13], "utf-8")[0]:02x}]")
+                    print(f"UNKNOWN[12] -> [{bytes(buf[12], "utf-8")[0]:02x}]")
+                    print(f"UNKNOWN[13] -> [{bytes(buf[13], "utf-8")[0]:02x}]")
+                    print(f"UNKNOWN[15] -> [{bytes(buf[12], "utf-8")[0]:02x}]")
+                    print(f"UNKNOWN[16] -> [{bytes(buf[13], "utf-8")[0]:02x}]")
+                    print(f"UNKNOWN[17] -> [{bytes(buf[12], "utf-8")[0]:02x}]")
             elif buf.startswith("RP02:"):
                 self.firmware_version = buf[5:11]
                 self.fpga_version = buf[11:17]
