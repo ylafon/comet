@@ -38,9 +38,13 @@ async def doit(args: argparse.Namespace):
 
     await comet.get_status()
     print(f"Connected to {comet_addr}")
-    print(f"Status: {comet.display_status()}")
 
     if args.s:
+        sleep_time = 0.0
+        while comet.power_status == 0 and sleep_time < 1.5:
+            await asyncio.sleep(0.1)
+            sleep_time += 0.1
+        print(f"Status: {comet.display_status()}")
         if hasattr(args, "power"):
             # Comet.POWERS[1] is a sad way to say "ON"
             if args.v:
@@ -65,8 +69,14 @@ async def doit(args: argparse.Namespace):
         if hasattr(args, "volume"):
             if args.v:
                 print(f"Setting volume to {args.volume}")
-            await comet.set_volume(args.volume)
-        print(f"Final Status: {comet.display_status()}")
+            await comet.set_volume(float(args.volume))
+
+    sleep_time = 0.0
+    while comet.power_status == 0 and sleep_time < 1.5:
+        await asyncio.sleep(0.1)
+        sleep_time += 0.1
+    await comet.disconnect()
+    print(f"Final Status: {comet.display_status()}")
 
 
 if __name__ == "__main__":
