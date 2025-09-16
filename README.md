@@ -1,2 +1,2 @@
 # comet
-Control Exogal Comet DAC
+Python Library to control an Exogal Comet DAC
