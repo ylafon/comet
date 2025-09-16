@@ -99,6 +99,8 @@ class Comet:
         await self.client.connect()
         self.characteristic = \
             list(self.client.services.characteristics.values())[0]
+        if self.__debug:
+            print(f"Connected to {self.comet_addr}, characteristic: {self.characteristic}   ")
         await self.client.start_notify(self.characteristic,
                                        self.__process_callback)
         return self.client
@@ -162,17 +164,39 @@ class Comet:
     async def power_off(self) -> None:
         await self.__send_command(self.Q_POWER_OFF)
 
+    async def set_mute(self, wanted_mute: str) -> bool:
+        max_loop: int = 10
+        wanted_mute = wanted_mute.upper()
+        if wanted_mute not in self.MUTES:
+            return False
+
+        target_mute = self.MUTES.index(wanted_mute)
+        if self.power_status != 0:
+            loop_idx = 0
+            while self.power_status == 0 and max_loop < max_loop:
+                loop_idx += 1
+                await self.get_status()
+
+        orig_mute = self.muted_status
+        while self.muted_status != target_mute:
+            await self.toggle_mute()
+            loop_idx = 0
+            while self.power_status == 0 and loop_idx < max_loop:
+                loop_idx += 1
+                await asyncio.sleep(0.05)
+            if self.muted_status == orig_mute:
+                # we looped, the selected mute was not available.
+                # and we keep the previously selected one
+                return False
+        return True
+
     async def set_input(self, wanted_input: str) -> bool:
         max_loop: int = 10
         wanted_input = wanted_input.upper()
-        if wanted_input not in self.INPUTS:
+        if wanted_input not in self.INPUTS[:-1]:
             return False
 
         target_input = self.INPUTS.index(wanted_input)
-        # don't aim for UNKNOWN :)
-        if target_input == 8:
-            return False
-
         if self.power_status != 0:
             loop_idx = 0
             while self.power_status == 0 and max_loop < max_loop:
@@ -195,7 +219,7 @@ class Comet:
     async def set_output(self, wanted_output: str) -> bool:
         max_loop: int = 10
         wanted_output = wanted_output.upper()
-        if wanted_output not in self.OUTPUTS:
+        if wanted_output not in self.OUTPUTS[:-1]:
             return False
         target_output = self.OUTPUTS.index(wanted_output)
         # don't aim for UNKNOWN :)
