@@ -5,7 +5,7 @@ from bleak import BleakClient, BleakGATTCharacteristic
 
 class Comet:
     __version__ = "0.0.1"
-    #     status = "CMDS:01\r"
+
     __debug = False
 
     # commands
@@ -22,7 +22,7 @@ class Comet:
     Q_POWER_ON: str = "BTNS:41"
     Q_POWER_TOGGLE: str = "BTNS:42"
 
-    # display TOTO localise this
+    # display/set TODO: localise the display part
     SAMPLINGS: list[str] = ["NOCLK", "NOPLL", "192K", "176.4K", "96K",
                             "88.2K", "48K", "44.1K", "384K", "352.8K", "DSD"]
     INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "EXONET",
