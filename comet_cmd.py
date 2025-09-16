@@ -12,7 +12,8 @@ desired_output: str
 desired_mute: str
 desired_power_status: str
 
-async def doit(args:argparse.Namespace):
+
+async def doit(args: argparse.Namespace):
     if hasattr(args, "addr"):
         comet_addr: str = args.addr
     else:
@@ -23,7 +24,7 @@ async def doit(args:argparse.Namespace):
             print(f"Found {len(devices)} BLE devices")
         for d in devices:
             if d.name is not None:
-                if d.name.startswith("Comet") or d.name.startswith("EXOGAL"):
+                if d.name.startswith("Comet_") or d.name == "EXOGAL_Comet_DAC":
                     if args.v:
                         print(d.details)
                     comet_addr: UUID | str = d.address
@@ -65,6 +66,7 @@ async def doit(args:argparse.Namespace):
             await comet.set_volume(args.volume)
         print(f"Final Status: {comet.display_status()}")
 
+
 if __name__ == "__main__":
     arg_parser: ArgumentParser = argparse.ArgumentParser()
     arg_parser.add_argument("--addr", type=str, default=argparse.SUPPRESS,
@@ -84,6 +86,6 @@ if __name__ == "__main__":
     arg_parser.add_argument("-s", action="store_true", help="Set values")
     arg_parser.add_argument("-v", action="store_true", help="Verbose")
 
-    arguments= arg_parser.parse_args()
+    arguments = arg_parser.parse_args()
 
     asyncio.run(doit(arguments))
