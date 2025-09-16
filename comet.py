@@ -28,7 +28,7 @@ class Comet:
     INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "EXONET",
                          "AIR", "TUNER", "UNKNOWN"]
     OUTPUTS: list[str] = ["MAIN", "HEAD", "EXONET", "UNKNOWN"]
-    MUTES: list[str] = ["UNMUTED", "MUTED", "REDUCED"]
+    MUTES: list[str] = ["MUTED", "UNMUTED", "REDUCED"]
     POWERS: list[str] = ["UNKNOWN", "ON", "OFF"]
 
     comet_addr: UUID | str = None
