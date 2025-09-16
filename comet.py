@@ -6,7 +6,7 @@ from bleak import BleakClient, BleakGATTCharacteristic
 class Comet:
     __version__ = "0.0.1"
 
-    __debug = False
+    __debug: bool = False
 
     # commands
     Q_STATUS: str = "CMDS:01"
@@ -52,7 +52,7 @@ class Comet:
                            raw_buffer: bytearray) -> None:
         buf = str(raw_buffer, 'utf-8')
         if self.__debug:
-            print(f"Processing Buffer")
+            print(f"Processing Buffer from {sender}")
         # check length of the reply
         if len(buf) == 18:
             if self.__debug:
@@ -62,7 +62,7 @@ class Comet:
                 self.power_status = 1 if buf[8] == "1" else 2
                 self.muted_status = int(buf[9])
                 self.sampling_status = int(buf[10])
-                if (self.sampling_status >= len(self.SAMPLINGS)):
+                if self.sampling_status >= len(self.SAMPLINGS):
                     self.sampling_status = 0
                 self.current_input = int(buf[11])
                 self.current_output = int(buf[14])
