@@ -43,6 +43,8 @@ async def doit(args: argparse.Namespace):
     if args.s:
         if hasattr(args, "power"):
             # Comet.POWERS[1] is a sad way to say "ON"
+            if args.v:
+                print(f"Turning power {args.power}")
             if args.power == Comet.POWERS[1]:
                 await comet.power_on()
             else:
