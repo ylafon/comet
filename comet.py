@@ -79,7 +79,7 @@ class Comet:
                 if self.__debug:
                     print(f"Processing -> Unrecognized")
 
-    async def __send_command(self, command: str) -> None:
+    async def __send_command(self, command: str, delay: float = 0.05) -> None:
         if self.__debug:
             print(f"Sending command [{command}]")
         if self.client is None or self.client.is_connected == False:
@@ -89,7 +89,7 @@ class Comet:
         await self.client.write_gatt_char(self.characteristic,
                                           bytearray("" + command + "\r",
                                                     encoding="utf-8"))
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(delay)
 
     async def connect(self) -> BleakClient:
         if self.client is not None:
@@ -225,9 +225,6 @@ class Comet:
         if wanted_output not in self.OUTPUTS[:-1]:
             return False
         target_output = self.OUTPUTS.index(wanted_output)
-        # don't aim for UNKNOWN :)
-        if target_output == 3:
-            return False
 
         if self.power_status != 0:
             loop_idx = 0
