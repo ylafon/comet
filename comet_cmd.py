@@ -24,9 +24,11 @@ async def doit(args: argparse.Namespace):
             print(f"Found {len(devices)} BLE devices")
         for d in devices:
             if d.name is not None:
+                if Comet.__debug:
+                    print(d.name.encode("utf-8"))
                 if d.name.startswith("Comet_") or d.name == "EXOGAL_Comet_DAC":
                     if args.v:
-                        print(d.details)
+                        print(f"Found {d.name}: {d.address}")
                     comet_addr: UUID | str = d.address
 
     if "comet_addr" not in locals():
@@ -67,6 +69,7 @@ async def doit(args: argparse.Namespace):
             await comet.set_mute(args.mute)
         # and finally
         if hasattr(args, "volume"):
+
             if args.v:
                 print(f"Setting volume to {args.volume}")
             await comet.set_volume(float(args.volume))

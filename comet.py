@@ -126,7 +126,7 @@ class Comet:
         await self.__send_command(self.Q_VOLUME_DEC)
 
     async def set_volume(self, volume: float) -> None:
-        max_loop: int = 10
+        max_loop: int = 100
         target_volume = round(volume * 2)
         if target_volume < 0:
             target_volume = 0
@@ -140,12 +140,12 @@ class Comet:
         if self.power_status != 0:
             while self.volume != target_volume:
                 if self.volume < target_volume:
-                    await self.__send_command(self.Q_VOLUME_INC)
+                    await self.__send_command(self.Q_VOLUME_INC, 0)
                 else:
                     await self.__send_command(self.Q_VOLUME_DEC)
                 loop_idx = 0
                 while self.power_status == 0 and loop_idx < max_loop:
-                    await asyncio.sleep(0.05)
+                    await asyncio.sleep(0.005)
                 if self.__debug:
                     print(f"Current Volume [{self.volume / 2:g}]")
 
