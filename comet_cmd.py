@@ -41,45 +41,53 @@ async def doit(args: argparse.Namespace):
     await comet.get_status()
     print(f"Connected to {comet_addr}")
 
-    if args.s:
-        sleep_time = 0.0
-        while comet.power_status == 0 and sleep_time < 1.5:
-            await asyncio.sleep(0.1)
-            sleep_time += 0.1
-        print(f"Status: {comet.display_status()}")
-        if hasattr(args, "power"):
-            # Comet.POWERS[1] is a sad way to say "ON"
-            if args.v:
-                print(f"Turning power {args.power}")
-            if args.power == Comet.POWERS[1]:
-                await comet.power_on()
-            else:
-                await comet.power_off()
-        if hasattr(args, "output"):
-            if args.v:
-                print(f"Setting output to {args.output}")
-            await comet.set_output(args.output)
-        if hasattr(args, "input"):
-            if args.v:
-                print(f"Setting input to {args.input}")
-            await comet.set_input(args.input)
-        if hasattr(args, "mute"):
-            if args.v:
-                print(f"Setting mute to {args.mute}")
-            await comet.set_mute(args.mute)
-        # and finally
-        if hasattr(args, "volume"):
-
-            if args.v:
-                print(f"Setting volume to {args.volume}")
-            await comet.set_volume(float(args.volume))
-
     sleep_time = 0.0
     while comet.power_status == 0 and sleep_time < 1.5:
         await asyncio.sleep(0.1)
         sleep_time += 0.1
-    await comet.disconnect()
-    print(f"Final Status: {comet.display_status()}")
+    print(f"Status: {comet.display_status()}")
+
+    status_only = True
+    if hasattr(args, "power"):
+        status_only = False
+        # Comet.POWERS[1] is a sad way to say "ON"
+        if args.v:
+            print(f"Turning power {args.power}")
+        if args.power == Comet.POWERS[1]:
+            await comet.power_on()
+        else:
+            await comet.power_off()
+    if hasattr(args, "output"):
+        status_only = False
+        if args.v:
+            print(f"Setting output to {args.output}")
+        await comet.set_output(args.output)
+    if hasattr(args, "input"):
+        status_only = False
+        if args.v:
+            print(f"Setting input to {args.input}")
+        await comet.set_input(args.input)
+    if hasattr(args, "mute"):
+        status_only = False
+        if args.v:
+            print(f"Setting mute to {args.mute}")
+        await comet.set_mute(args.mute)
+    # and finally
+    if hasattr(args, "volume"):
+        status_only = False
+        if args.v:
+            print(f"Setting volume to {args.volume}")
+        await comet.set_volume(float(args.volume))
+        if comet.muted_status != Comet.MUTES.index(Comet.MUTES[0]) and args.volume >= 100.0:
+            await comet.increase_volume()
+
+    if not status_only:
+        sleep_time = 0.0
+        while comet.power_status == 0 and sleep_time < 1.5:
+            await asyncio.sleep(0.1)
+            sleep_time += 0.1
+        await comet.disconnect()
+        print(f"Final Status: {comet.display_status()}")
 
 
 if __name__ == "__main__":
@@ -98,7 +106,6 @@ if __name__ == "__main__":
     arg_parser.add_argument("--power", type=str, default=argparse.SUPPRESS,
                             choices=Comet.POWERS[1:],
                             help="Desired Comet power state")
-    arg_parser.add_argument("-s", action="store_true", help="Set values")
     arg_parser.add_argument("-v", action="store_true", help="Verbose")
 
     arguments = arg_parser.parse_args()
