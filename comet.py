@@ -212,7 +212,7 @@ class Comet:
             loop_idx = 0
             while self.power_status == 0 and loop_idx < max_loop:
                 loop_idx += 1
-                await asyncio.sleep(0.05)
+                await asyncio.sleep(0.5)
             if self.current_input == orig_input:
                 # we looped, the selected input was not available.
                 # and we keep the previously selected one
