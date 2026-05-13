@@ -24,7 +24,7 @@ async def doit(args: argparse.Namespace):
             print(f"Found {len(devices)} BLE devices")
         for d in devices:
             if d.name is not None:
-                if Comet._Comet__debug:
+                if Comet._debug:
                     print(d.name.encode("utf-8"))
                 if d.name.startswith("Comet_") or d.name == "EXOGAL_Comet_DAC":
                     if args.v:
