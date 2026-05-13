@@ -31,22 +31,22 @@ class Comet:
     MUTES: list[str] = ["UNMUTED", "MUTED", "REDUCED"]
     POWERS: list[str] = ["UNKNOWN", "ON", "OFF"]
 
-    comet_addr: UUID | str = None
-    characteristic: BleakGATTCharacteristic = None
 
-    client: BleakClient = None
+    def __init__(self, comet_addr: UUID | str, debug: bool = False):
+        self.comet_addr: UUID | str  = comet_addr
+        self_debug = debug
 
-    firmware_version: str = None
-    fpga_version: str = None
-    power_status: int = 0
-    muted_status: int = 0
-    current_input: int = 0
-    current_output: int = 0
-    sampling_status: int = 0
-    volume: int = 0
+        self.characteristic: BleakGATTCharacteristic = None
+        self.client: BleakClient = None
+        self.firmware_version: str = None
+        self.fpga_version: str = None
+        self.power_status: int = 0
+        self.muted_status: int = 0
+        self.current_input: int = 0
+        self.current_output: int = 0
+        self.sampling_status: int = 0
+        self.volume: int = 0
 
-    def __init__(self, comet_addr: UUID | str):
-        self.comet_addr = comet_addr
 
     def __process_callback(self, sender: BleakGATTCharacteristic,
                            raw_buffer: bytearray) -> None:
@@ -79,6 +79,7 @@ class Comet:
                 if self._debug:
                     print(f"Processing -> Unrecognized")
 
+
     async def __send_command(self, command: str, delay: float = 0.05) -> None:
         if self._debug:
             print(f"Sending command [{command}]")
@@ -90,6 +91,7 @@ class Comet:
                                           bytearray("" + command + "\r",
                                                     encoding="utf-8"))
         await asyncio.sleep(delay)
+
 
     async def connect(self) -> BleakClient:
         if self.client is not None:
