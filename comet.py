@@ -226,7 +226,7 @@ class Comet:
             return False
 
         target_mute = self.MUTES.index(wanted_mute)
-        if self.power_status != 0:
+        if self.power_status == 0:
             loop_idx = 0
             while self.power_status == 0 and loop_idx < max_loop:
                 loop_idx += 1
@@ -252,7 +252,7 @@ class Comet:
             return False
 
         target_input = self.INPUTS.index(wanted_input)
-        if self.power_status != 0:
+        if self.power_status == 0:
             loop_idx = 0
             while self.power_status == 0 and loop_idx < max_loop:
                 loop_idx += 1
@@ -278,7 +278,7 @@ class Comet:
             return False
         target_output = self.OUTPUTS.index(wanted_output)
 
-        if self.power_status != 0:
+        if self.power_status == 0:
             loop_idx = 0
             while self.power_status == 0 and loop_idx < max_loop:
                 loop_idx += 1
