@@ -6,7 +6,7 @@ from bleak import BleakClient, BleakGATTCharacteristic
 class Comet:
     __version__ = "0.0.1"
 
-    __debug: bool = False
+    _debug: bool = False
 
     # commands
     Q_STATUS: str = "CMDS:01"
@@ -51,11 +51,11 @@ class Comet:
     def __process_callback(self, sender: BleakGATTCharacteristic,
                            raw_buffer: bytearray) -> None:
         buf = str(raw_buffer, 'utf-8')
-        if self.__debug:
+        if self._debug:
             print(f"Processing Buffer from {sender}")
         # check length of the reply
         if len(buf) == 18:
-            if self.__debug:
+            if self._debug:
                 print(f"-> {buf[0:4]}")
             if buf.startswith("RP01:"):
                 self.volume = int(buf[5:8])
@@ -66,7 +66,7 @@ class Comet:
                     self.sampling_status = 0
                 self.current_input = int(buf[11])
                 self.current_output = int(buf[14])
-                if self.__debug:
+                if self._debug:
                     print(f"UNKNOWN[12] -> [{bytes(buf[12], 'utf-8')[0]:02x}]")
                     print(f"UNKNOWN[13] -> [{bytes(buf[13], 'utf-8')[0]:02x}]")
                     print(f"UNKNOWN[15] -> [{bytes(buf[12], 'utf-8')[0]:02x}]")
@@ -76,11 +76,11 @@ class Comet:
                 self.firmware_version = buf[5:11]
                 self.fpga_version = buf[11:17]
             else:
-                if self.__debug:
+                if self._debug:
                     print(f"Processing -> Unrecognized")
 
     async def __send_command(self, command: str, delay: float = 0.05) -> None:
-        if self.__debug:
+        if self._debug:
             print(f"Sending command [{command}]")
         if self.client is None or self.client.is_connected == False:
             await self.connect()
@@ -102,7 +102,7 @@ class Comet:
         await self.client.connect()
         self.characteristic = \
             list(self.client.services.characteristics.values())[0]
-        if self.__debug:
+        if self._debug:
             print(f"Connected to {self.comet_addr}, characteristic: {self.characteristic}")
         await self.client.start_notify(self.characteristic,
                                        self.__process_callback)
@@ -146,7 +146,7 @@ class Comet:
                 loop_idx = 0
                 while self.power_status == 0 and loop_idx < max_loop:
                     await asyncio.sleep(0.005)
-                if self.__debug:
+                if self._debug:
                     print(f"Current Volume [{self.volume / 2:g}]")
 
     async def toggle_mute(self) -> None:
