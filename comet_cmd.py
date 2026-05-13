@@ -78,7 +78,10 @@ async def doit(args: argparse.Namespace):
         if args.v:
             print(f"Setting volume to {args.volume}")
         await comet.set_volume(float(args.volume))
-        if comet.muted_status != Comet.MUTES.index(Comet.MUTES[0]) and args.volume >= 100.0:
+        if (
+            comet.muted_status != Comet.MUTES.index(Comet.MUTES[0])
+            and args.volume >= 100.0
+        ):
             await comet.increase_volume()
 
     if not status_only:
@@ -92,20 +95,40 @@ async def doit(args: argparse.Namespace):
 
 if __name__ == "__main__":
     arg_parser: ArgumentParser = argparse.ArgumentParser()
-    arg_parser.add_argument("--addr", type=str, default=argparse.SUPPRESS,
-                            help="Comet address")
-    arg_parser.add_argument("--volume", type=float, default=argparse.SUPPRESS,
-                            help="Desired Comet volume")
-    arg_parser.add_argument("--input", type=str, default=argparse.SUPPRESS,
-                            choices=Comet.INPUTS[:-1], help="Desired Comet input")
-    arg_parser.add_argument("--output", type=str, default=argparse.SUPPRESS,
-                            choices=Comet.OUTPUTS[:-1], help="Desired Comet output")
-    arg_parser.add_argument("--mute", type=str, default=argparse.SUPPRESS,
-                            choices=Comet.MUTES,
-                            help="Desired Comet mute state")
-    arg_parser.add_argument("--power", type=str, default=argparse.SUPPRESS,
-                            choices=Comet.POWERS[1:],
-                            help="Desired Comet power state")
+    arg_parser.add_argument(
+        "--addr", type=str, default=argparse.SUPPRESS, help="Comet address"
+    )
+    arg_parser.add_argument(
+        "--volume", type=float, default=argparse.SUPPRESS, help="Desired Comet volume"
+    )
+    arg_parser.add_argument(
+        "--input",
+        type=str,
+        default=argparse.SUPPRESS,
+        choices=Comet.INPUTS[:-1],
+        help="Desired Comet input",
+    )
+    arg_parser.add_argument(
+        "--output",
+        type=str,
+        default=argparse.SUPPRESS,
+        choices=Comet.OUTPUTS[:-1],
+        help="Desired Comet output",
+    )
+    arg_parser.add_argument(
+        "--mute",
+        type=str,
+        default=argparse.SUPPRESS,
+        choices=Comet.MUTES,
+        help="Desired Comet mute state",
+    )
+    arg_parser.add_argument(
+        "--power",
+        type=str,
+        default=argparse.SUPPRESS,
+        choices=Comet.POWERS[1:],
+        help="Desired Comet power state",
+    )
     arg_parser.add_argument("-v", action="store_true", help="Verbose")
     arg_parser.add_argument("-d", action="store_true", help="Debug")
 

@@ -12,6 +12,7 @@ __version__ = "0.0.1"
 
 __all__ = ["Comet"]
 
+
 class Comet:
     _debug: bool = False
     logger = logging.getLogger(__name__)
@@ -31,17 +32,36 @@ class Comet:
     Q_POWER_TOGGLE: str = "BTNS:42"
 
     # display/set TODO: localise the display part
-    SAMPLINGS: list[str] = ["NOCLK", "NOPLL", "192K", "176.4K", "96K",
-                            "88.2K", "48K", "44.1K", "384K", "352.8K", "DSD"]
-    INPUTS: list[str] = ["AES", "SPDIF", "TOSLINK", "ANALOG", "USB", "EXONET",
-                         "AIR", "TUNER", "UNKNOWN"]
+    SAMPLINGS: list[str] = [
+        "NOCLK",
+        "NOPLL",
+        "192K",
+        "176.4K",
+        "96K",
+        "88.2K",
+        "48K",
+        "44.1K",
+        "384K",
+        "352.8K",
+        "DSD",
+    ]
+    INPUTS: list[str] = [
+        "AES",
+        "SPDIF",
+        "TOSLINK",
+        "ANALOG",
+        "USB",
+        "EXONET",
+        "AIR",
+        "TUNER",
+        "UNKNOWN",
+    ]
     OUTPUTS: list[str] = ["MAIN", "HEAD", "EXONET", "UNKNOWN"]
     MUTES: list[str] = ["UNMUTED", "MUTED", "REDUCED"]
     POWERS: list[str] = ["UNKNOWN", "ON", "OFF"]
 
-
     def __init__(self, comet_addr: UUID | str, debug: bool = False):
-        self.comet_addr: UUID | str  = comet_addr
+        self.comet_addr: UUID | str = comet_addr
         self._debug = debug
         if debug:
             handler = logging.StreamHandler(sys.stderr)
@@ -67,9 +87,10 @@ class Comet:
     async def __aexit__(self, *args) -> None:
         await self.disconnect()
 
-    def __process_callback(self, sender: BleakGATTCharacteristic,
-                           raw_buffer: bytearray) -> None:
-        buf = str(raw_buffer, 'utf-8')
+    def __process_callback(
+        self, sender: BleakGATTCharacteristic, raw_buffer: bytearray
+    ) -> None:
+        buf = str(raw_buffer, "utf-8")
         if self._debug:
             self.logger.debug(f"Processing Buffer from {sender}")
         else:
@@ -88,18 +109,27 @@ class Comet:
                 self.current_input = int(buf[11])
                 self.current_output = int(buf[14])
                 if self._debug:
-                    self.logger.debug(f"UNKNOWN[12] -> [{bytes(buf[12], 'utf-8')[0]:02x}]")
-                    self.logger.debug(f"UNKNOWN[13] -> [{bytes(buf[13], 'utf-8')[0]:02x}]")
-                    self.logger.debug(f"UNKNOWN[15] -> [{bytes(buf[12], 'utf-8')[0]:02x}]")
-                    self.logger.debug(f"UNKNOWN[16] -> [{bytes(buf[13], 'utf-8')[0]:02x}]")
-                    self.logger.debug(f"UNKNOWN[17] -> [{bytes(buf[12], 'utf-8')[0]:02x}]")
+                    self.logger.debug(
+                        f"UNKNOWN[12] -> [{bytes(buf[12], 'utf-8')[0]:02x}]"
+                    )
+                    self.logger.debug(
+                        f"UNKNOWN[13] -> [{bytes(buf[13], 'utf-8')[0]:02x}]"
+                    )
+                    self.logger.debug(
+                        f"UNKNOWN[15] -> [{bytes(buf[12], 'utf-8')[0]:02x}]"
+                    )
+                    self.logger.debug(
+                        f"UNKNOWN[16] -> [{bytes(buf[13], 'utf-8')[0]:02x}]"
+                    )
+                    self.logger.debug(
+                        f"UNKNOWN[17] -> [{bytes(buf[12], 'utf-8')[0]:02x}]"
+                    )
             elif buf.startswith("RP02:"):
                 self.firmware_version = buf[5:11]
                 self.fpga_version = buf[11:17]
             else:
                 if self._debug:
                     self.logger.debug(f"Processing -> Unrecognized")
-
 
     async def __send_command(self, command: str, delay: float = 0.05) -> None:
         if self._debug:
@@ -108,11 +138,10 @@ class Comet:
             await self.connect()
         # We reset power status to ensure new values will be populated
         self.power_status = 0
-        await self.client.write_gatt_char(self.characteristic,
-                                          bytearray("" + command + "\r",
-                                                    encoding="utf-8"))
+        await self.client.write_gatt_char(
+            self.characteristic, bytearray("" + command + "\r", encoding="utf-8")
+        )
         await asyncio.sleep(delay)
-
 
     async def connect(self) -> BleakClient:
         if self.client is not None:
@@ -123,12 +152,12 @@ class Comet:
                 pass
         self.client = BleakClient(self.comet_addr)
         await self.client.connect()
-        self.characteristic = \
-            list(self.client.services.characteristics.values())[0]
+        self.characteristic = list(self.client.services.characteristics.values())[0]
         if self._debug:
-            self.logger.debug(f"Connected to {self.comet_addr}, characteristic: {self.characteristic}")
-        await self.client.start_notify(self.characteristic,
-                                       self.__process_callback)
+            self.logger.debug(
+                f"Connected to {self.comet_addr}, characteristic: {self.characteristic}"
+            )
+        await self.client.start_notify(self.characteristic, self.__process_callback)
         return self.client
 
     async def disconnect(self) -> None:
