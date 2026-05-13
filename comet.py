@@ -4,7 +4,13 @@ import logging
 from uuid import UUID
 from bleak import BleakClient, BleakGATTCharacteristic
 
+"""
+Control EXOGAL Comet DACs
+"""
+
 __version__ = "0.0.1"
+
+__all__ = ["Comet"]
 
 class Comet:
     _debug: bool = False
