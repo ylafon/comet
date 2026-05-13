@@ -35,7 +35,7 @@ async def doit(args: argparse.Namespace):
         print("Comet not detected.")
         return
 
-    comet: Comet = Comet(comet_addr)
+    comet: Comet = Comet(comet_addr, hasattr(args, "d") and args.d)
     await comet.connect()
 
     await comet.get_status()
@@ -107,6 +107,7 @@ if __name__ == "__main__":
                             choices=Comet.POWERS[1:],
                             help="Desired Comet power state")
     arg_parser.add_argument("-v", action="store_true", help="Verbose")
+    arg_parser.add_argument("-d", action="store_true", help="Debug")
 
     arguments = arg_parser.parse_args()
 
