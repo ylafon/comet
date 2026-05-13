@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.backends.legacy:BuildBackend"
+
+[project]
+name = "comet-ble"
+version = "0.0.1"
+description = "Python library for controlling EXOGAL Comet DACs over Bluetooth LE"
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
+requires-python = ">=3.10"
+dependencies = [
+    "bleak>=0.22",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.urls]
+Homepage = "https://github.com/ylafon/comet"
+Repository = "https://github.com/ylafon/comet"
+Issues = "https://github.com/ylafon/comet/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["comet*"]
