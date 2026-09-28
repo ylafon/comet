@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import sys
 import asyncio
 import logging
 from uuid import UUID
 from bleak import BleakClient, BleakGATTCharacteristic
+from bleak.exc import BleakError
 
 """
 Control EXOGAL Comet DACs
@@ -144,6 +146,20 @@ class Comet:
         )
         await asyncio.sleep(delay)
 
+    def __find_characteristic(self) -> BleakGATTCharacteristic:
+        chars = sorted(
+            self.client.services.characteristics.values(), key=lambda ch: ch.handle
+        )
+        for char in chars:
+            props = char.properties
+            if ("notify" in props or "indicate" in props) and (
+                "write" in props or "write-without-response" in props):
+                return char
+        raise BleakError(
+            "no usable characteristic found: "
+            + ", ".join(f"{ch.uuid} {ch.properties}" for ch in chars)
+        )
+
     async def connect(self) -> BleakClient:
         if self.client is not None:
             try:
@@ -153,7 +169,7 @@ class Comet:
                 pass
         self.client = BleakClient(self.comet_addr)
         await self.client.connect()
-        self.characteristic = list(self.client.services.characteristics.values())[0]
+        self.characteristic = self.__find_characteristic()
         if self._debug:
             self.logger.debug(
                 f"Connected to {self.comet_addr}, characteristic: {self.characteristic}"
